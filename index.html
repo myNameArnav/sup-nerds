@@ -313,20 +313,33 @@ document.addEventListener('click', e => {
 
 // ── EGG 8 — mobile shake ──────────────────────────────────────────────────────
 let lastShake = 0;
-window.addEventListener('devicemotion', e => {
-  const a = e.accelerationIncludingGravity;
-  if (!a) return;
-  if (Math.abs(a.x)+Math.abs(a.y)+Math.abs(a.z) > 40
-      && Date.now()-lastShake > 3000) {
-    lastShake = Date.now();
-    gsap.to(stage, {
-      x: 'random(-35,35)', y: 'random(-25,25)', rotation: 'random(-10,10)',
-      duration: 0.08, repeat: 10, yoyo: true,
-      onComplete: () => gsap.set(stage, { x:0, y:0, rotation:0 })
-    });
-    pop('stop shaking me!!');
-  }
-});
+function attachShake() {
+  let lastShake = 0;
+  window.addEventListener('devicemotion', e => {
+    const a = e.accelerationIncludingGravity;
+    if (!a) return;
+    if (Math.abs(a.x) + Math.abs(a.y) + Math.abs(a.z) > 40
+        && Date.now() - lastShake > 3000) {
+      lastShake = Date.now();
+      gsap.to(stage, {
+        x: 'random(-35,35)', y: 'random(-25,25)', rotation: 'random(-10,10)',
+        duration: 0.08, repeat: 10, yoyo: true,
+        onComplete: () => gsap.set(stage, { x: 0, y: 0, rotation: 0 })
+      });
+      pop('stop shaking me!!');
+    }
+  });
+}
+
+// Request permission on first tap (required on iOS 13+)
+if (typeof DeviceMotionEvent?.requestPermission === 'function') {
+  document.addEventListener('click', async () => {
+    const perm = await DeviceMotionEvent.requestPermission().catch(() => 'denied');
+    if (perm === 'granted') attachShake();
+  }, { once: true });
+} else {
+  attachShake();
+}
 
 // ── console eggs ──────────────────────────────────────────────────────────────
 console.log('%c o-0 ',
